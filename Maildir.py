@@ -16,6 +16,7 @@
 #
 
 import os
+import re
 from sys import argv
 import urllib
 import email.parser
@@ -30,14 +31,9 @@ class Maildir(GObject.GObject,
               Caja.InfoProvider):
 
 
+    # Pass our columns to Caja
     def get_columns(self):
         return (
-            Caja.Column(
-                name="Maildir::from_column",
-                attribute="from",
-                label="From",
-                description=""
-            ),
             Caja.Column(
                 name="Maildir::subject_column",
                 attribute="subject",
@@ -45,20 +41,53 @@ class Maildir(GObject.GObject,
                 description=""
             ),
             Caja.Column(
+                name="Maildir::sent_column",
+                attribute="sent",
+                label="Sent",
+                description=""
+            ),
+
+            Caja.Column(
+                name="Maildir::from_column",
+                attribute="from",
+                label="From",
+                description=""
+            ),
+            Caja.Column(
+                name="Maildir::from_addr_column",
+                attribute="from_addr",
+                label="From (Addr)",
+                description=""
+            ),
+            Caja.Column(
+                name="Maildir::from_name_column",
+                attribute="from_name",
+                label="From (Name)",
+                description=""
+            ),
+
+            Caja.Column(
                 name="Maildir::to_column",
                 attribute="to",
                 label="To",
                 description=""
             ),
             Caja.Column(
-                name="Maildir::sent_column",
-                attribute="sent",
-                label="Sent",
+                name="Maildir::to_addr_column",
+                attribute="to_addr",
+                label="To (Addr)",
+                description=""
+            ),
+            Caja.Column(
+                name="Maildir::to_name_column",
+                attribute="to_name",
+                label="To (Name)",
                 description=""
             )
         )
 
 
+    # Implants e-mail-related attributes into a file's columns
     def update_file_info(self, file):
         if not file.is_mime_type("message/rfc822"):
             return
@@ -66,10 +95,41 @@ class Maildir(GObject.GObject,
         filename = file.get_uri()[7:]
         message = email.message_from_file(open(filename))
 
-        file.add_string_attribute('to', message.get("To"))
-        file.add_string_attribute('from', message.get("From"))
-        file.add_string_attribute('subject', message.get("Subject"))
+        sender = message.get("From")
+        to = message.get("To")
+        subject = message.get("Subject")
 
-        date = parser.parse(message.get("Date"))
-        if date:
-            file.add_string_attribute('sent', date.strftime("%Y-%m-%d %H:%M:%S %z"))
+        if to:
+            file.add_string_attribute('to', to)
+            file.add_string_attribute('to_addr', self.from_header_addr(to))
+            file.add_string_attribute('to_name', self.from_header_name(to))
+
+        if sender:
+            file.add_string_attribute('from', sender)
+            file.add_string_attribute('from_addr', self.from_header_addr(sender))
+            file.add_string_attribute('from_name', self.from_header_name(sender))
+
+        if subject:
+            file.add_string_attribute('subject', message.get("Subject"))
+
+        try:
+            date = parser.parse(message.get("Date"))
+            if date:
+                file.add_string_attribute('sent', date.strftime("%Y-%m-%d %H:%M:%S %z"))
+        except:
+            print("The date couldn't be parsed — that's alright, we didn't need it anyway.")
+
+
+    # Helper function, for parsing e-mail addresses of to/from headers
+    def from_header_addr(self, str):
+        if re.search(r'<', str):
+            return re.sub('[<|>]', '',
+                          re.search(r'<.*@.*>', str).group(0))
+        return str
+
+
+    # Helper function, for parsing names of to/from headers
+    def from_header_name(self, str):
+        if re.search(r'<', str):
+            return re.sub('<.*', '', str)
+        return ''
