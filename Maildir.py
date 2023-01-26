@@ -89,11 +89,11 @@ class Maildir(GObject.GObject,
 
     # Implants e-mail-related attributes into a file's columns
     def update_file_info(self, file):
-        if not file.is_mime_type("message/rfc822"):
+        if file.get_uri_scheme() == 'file' and not file.is_mime_type("message/rfc822"):
             return
 
-        filename = file.get_uri()[7:]
-        message = email.message_from_file(open(filename))
+        filepath = file.get_location().get_path()
+        message = email.message_from_file(open(filepath))
 
         sender = message.get("From")
         to = message.get("To")
