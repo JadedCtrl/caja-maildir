@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022, Jaidyn Levesque <jadedctrl@posteo.at>
+# Copyright (C) 2023, Jaidyn Levesque <jadedctrl@posteo.at>
 #
 # This program is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
