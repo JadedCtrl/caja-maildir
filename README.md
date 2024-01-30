@@ -17,5 +17,4 @@ Then you can copy the resultant script into `~/.local/share/[caja|nemo|nautilus]
 ## Meta
 Author is jadedctrl, and the license is the GNU GPLv3+ (in COPYING.txt).
 
-https://notabug.org/jadedctrl/nautilus-maildir  
-https://github.com/jadedctrl/nautilus-maildir
+https://hak.xwx.moe/jadedctrl/nautilus-maildir
